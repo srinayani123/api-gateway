@@ -4,7 +4,7 @@ Prometheus-compatible metrics endpoints.
 
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import Dict, List
+from typing import Dict
 from app.core.redis_client import redis_client
 from app.core.circuit_breaker import CircuitBreakerRegistry
 
@@ -93,7 +93,7 @@ async def get_latency_stats(service: str):
                 "message": "No latency data available"
             }
         
-        values = [float(l) for l in latencies]
+        values = [float(lat) for lat in latencies]
         values.sort()
         
         count = len(values)

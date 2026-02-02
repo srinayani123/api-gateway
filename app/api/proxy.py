@@ -78,12 +78,12 @@ async def get_circuit_status():
     statuses = await CircuitBreakerRegistry.get_all_status()
     
     result = []
-    for service, status in statuses.items():
+    for service, circuit_status in statuses.items():
         result.append(CircuitStatusResponse(
             service=service,
-            state=status.state.value,
-            failures=status.failures,
-            available=status.is_available
+            state=circuit_status.state.value,
+            failures=circuit_status.failures,
+            available=circuit_status.is_available
         ))
     
     return result

@@ -40,7 +40,7 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
             if not window_allowed:
                 await redis_client.increment_metric(
                     "rate_limit_exceeded",
-                    f"type=sliding_window"
+                    "type=sliding_window"
                 )
                 return self._rate_limit_response(
                     "Rate limit exceeded",
@@ -54,7 +54,7 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
             if not bucket_allowed:
                 await redis_client.increment_metric(
                     "rate_limit_exceeded",
-                    f"type=token_bucket"
+                    "type=token_bucket"
                 )
                 return self._rate_limit_response(
                     "Too many requests, please slow down",

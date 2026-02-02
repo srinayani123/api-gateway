@@ -13,7 +13,7 @@ from typing import Optional
 from fastapi import Request, Response, HTTPException, status
 
 from app.config import settings, UPSTREAM_SERVICES
-from app.core.circuit_breaker import CircuitBreakerRegistry, CircuitState
+from app.core.circuit_breaker import CircuitBreakerRegistry
 from app.core.redis_client import redis_client
 
 
