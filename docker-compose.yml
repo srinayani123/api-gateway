@@ -1,0 +1,83 @@
+services:
+  gateway:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET_KEY=your-super-secret-key-change-in-production
+      - ENVIRONMENT=development
+      - RATE_LIMIT_REQUESTS=100
+      - RATE_LIMIT_WINDOW_SECONDS=60
+      - TOKEN_BUCKET_CAPACITY=50
+      - TOKEN_BUCKET_REFILL_RATE=10
+      - CIRCUIT_FAILURE_THRESHOLD=5
+      - CIRCUIT_RECOVERY_TIMEOUT=30
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Mock upstream services for testing
+  users-service:
+    image: hashicorp/http-echo
+    command: ["-text", '{"id": "1", "name": "Test User", "email": "test@example.com"}']
+    ports:
+      - "8001:5678"
+
+  orders-service:
+    image: hashicorp/http-echo
+    command: ["-text", '{"orders": [{"id": "1", "status": "pending"}]}']
+    ports:
+      - "8002:5678"
+
+  products-service:
+    image: hashicorp/http-echo
+    command: ["-text", '{"products": [{"id": "1", "name": "Widget", "price": 9.99}]}']
+    ports:
+      - "8003:5678"
+
+  payments-service:
+    image: hashicorp/http-echo
+    command: ["-text", '{"status": "ok"}']
+    ports:
+      - "8004:5678"
+
+  # Prometheus for metrics (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    profiles:
+      - monitoring
+
+  # Grafana for dashboards (optional)
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    profiles:
+      - monitoring
+
+volumes:
+  redis_data:
